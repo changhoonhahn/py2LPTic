@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <drfftw_mpi.h>
+#include "fftw2compat.h"
 #include <mpi.h>
 #include <gsl/gsl_rng.h>
 
@@ -32,6 +32,8 @@ int main(int argc, char **argv)
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
   MPI_Comm_size(MPI_COMM_WORLD, &NTask);
+
+  fftw_mpi_init();
 
   if(argc < 2)
     {
@@ -205,8 +207,8 @@ void displacement_fields(void)
 	  for(k = 0; k <= Nmesh / 2; k++)
 	    for(axes = 0; axes < 3; axes++)
 	      {
-		cdisp[axes][(i * Nmesh + j) * (Nmesh / 2 + 1) + k].re = 0;
-		cdisp[axes][(i * Nmesh + j) * (Nmesh / 2 + 1) + k].im = 0;
+		cdisp[axes][(i * Nmesh + j) * (Nmesh / 2 + 1) + k][0] = 0;
+		cdisp[axes][(i * Nmesh + j) * (Nmesh / 2 + 1) + k][1] = 0;
 
 #ifdef OUTPUT_DF
 		//find the coordinates of the modes and put to 0 the modes
@@ -290,9 +292,9 @@ void displacement_fields(void)
 			  if(i >= Local_x_start && i < (Local_x_start + Local_nx))
 			    for(axes = 0; axes < 3; axes++)
 			      {
-				cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k].re =
+				cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k][0] =
 				  -kvec[axes] / kmag2 * delta * sin(phase);
-				cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k].im =
+				cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k][1] =
 				  kvec[axes] / kmag2 * delta * cos(phase);
 #ifdef OUTPUT_DF
 				if (axes==0)
@@ -317,9 +319,9 @@ void displacement_fields(void)
 				      
 				      for(axes = 0; axes < 3; axes++)
 					{
-					  cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k].re =
+					  cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k][0] =
 					    -kvec[axes] / kmag2 * delta * sin(phase);
-					  cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k].im =
+					  cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k][1] =
 					    kvec[axes] / kmag2 * delta * cos(phase);
 #ifdef OUTPUT_DF
 					  if (axes==0)
@@ -328,9 +330,9 @@ void displacement_fields(void)
 					      phases[((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k] = phase;
 					    }
 #endif					  
-					  cdisp[axes][((i - Local_x_start) * Nmesh + jj) * (Nmesh / 2 + 1) + k].re =
+					  cdisp[axes][((i - Local_x_start) * Nmesh + jj) * (Nmesh / 2 + 1) + k][0] =
 					    -kvec[axes] / kmag2 * delta * sin(phase);
-					  cdisp[axes][((i - Local_x_start) * Nmesh + jj) * (Nmesh / 2 + 1) + k].im =
+					  cdisp[axes][((i - Local_x_start) * Nmesh + jj) * (Nmesh / 2 + 1) + k][1] =
 					    -kvec[axes] / kmag2 * delta * cos(phase);
 #ifdef OUTPUT_DF
 					  if (axes==0)
@@ -359,9 +361,9 @@ void displacement_fields(void)
 				  if(i >= Local_x_start && i < (Local_x_start + Local_nx))
 				    for(axes = 0; axes < 3; axes++)
 				      {
-					cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k].re =
+					cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k][0] =
 					  -kvec[axes] / kmag2 * delta * sin(phase);
-					cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k].im =
+					cdisp[axes][((i - Local_x_start) * Nmesh + j) * (Nmesh / 2 + 1) + k][1] =
 					  kvec[axes] / kmag2 * delta * cos(phase);
 #ifdef OUTPUT_DF
 					if (axes==0)
@@ -376,9 +378,9 @@ void displacement_fields(void)
 				    for(axes = 0; axes < 3; axes++)
 				      {
 					cdisp[axes][((ii - Local_x_start) * Nmesh + jj) * (Nmesh / 2 + 1) +
-					      k].re = -kvec[axes] / kmag2 * delta * sin(phase);
+					      k][0] = -kvec[axes] / kmag2 * delta * sin(phase);
 					cdisp[axes][((ii - Local_x_start) * Nmesh + jj) * (Nmesh / 2 + 1) +
-					      k].im = -kvec[axes] / kmag2 * delta * cos(phase);
+					      k][1] = -kvec[axes] / kmag2 * delta * cos(phase);
 #ifdef OUTPUT_DF
 					if (axes==0)
 					  {
@@ -437,23 +439,23 @@ void displacement_fields(void)
 	      
 	      /* Derivatives of ZA displacement  */
 	      /* d(dis_i)/d(q_j)  -> sqrt(-1) k_j dis_i */
-	      cdigrad[0][coord].re = -cdisp[0][coord].im * kvec[0]; /* disp0,0 */
-	      cdigrad[0][coord].im = cdisp[0][coord].re * kvec[0];
+	      cdigrad[0][coord][0] = -cdisp[0][coord][1] * kvec[0]; /* disp0,0 */
+	      cdigrad[0][coord][1] = cdisp[0][coord][0] * kvec[0];
 
-	      cdigrad[1][coord].re = -cdisp[0][coord].im * kvec[1]; /* disp0,1 */
-	      cdigrad[1][coord].im = cdisp[0][coord].re * kvec[1];
+	      cdigrad[1][coord][0] = -cdisp[0][coord][1] * kvec[1]; /* disp0,1 */
+	      cdigrad[1][coord][1] = cdisp[0][coord][0] * kvec[1];
 
-	      cdigrad[2][coord].re = -cdisp[0][coord].im * kvec[2]; /* disp0,2 */
-	      cdigrad[2][coord].im = cdisp[0][coord].re * kvec[2];
+	      cdigrad[2][coord][0] = -cdisp[0][coord][1] * kvec[2]; /* disp0,2 */
+	      cdigrad[2][coord][1] = cdisp[0][coord][0] * kvec[2];
 	      
-	      cdigrad[3][coord].re = -cdisp[1][coord].im * kvec[1]; /* disp1,1 */
-	      cdigrad[3][coord].im = cdisp[1][coord].re * kvec[1];
+	      cdigrad[3][coord][0] = -cdisp[1][coord][1] * kvec[1]; /* disp1,1 */
+	      cdigrad[3][coord][1] = cdisp[1][coord][0] * kvec[1];
 
-	      cdigrad[4][coord].re = -cdisp[1][coord].im * kvec[2]; /* disp1,2 */
-	      cdigrad[4][coord].im = cdisp[1][coord].re * kvec[2];
+	      cdigrad[4][coord][0] = -cdisp[1][coord][1] * kvec[2]; /* disp1,2 */
+	      cdigrad[4][coord][1] = cdisp[1][coord][0] * kvec[2];
 
-	      cdigrad[5][coord].re = -cdisp[2][coord].im * kvec[2]; /* disp2,2 */
-	      cdigrad[5][coord].im = cdisp[2][coord].re * kvec[2];
+	      cdigrad[5][coord][0] = -cdisp[2][coord][1] * kvec[2]; /* disp2,2 */
+	      cdigrad[5][coord][1] = cdisp[2][coord][0] * kvec[2];
 	    }
 
 
@@ -541,13 +543,13 @@ void displacement_fields(void)
 		{
 		  if(kmag2 > 0.0) 
 		    {
-		      cdisp2[axes][coord].re = cdigrad[3][coord].im * kvec[axes] / kmag2;
-		      cdisp2[axes][coord].im = -cdigrad[3][coord].re * kvec[axes] / kmag2;
+		      cdisp2[axes][coord][0] = cdigrad[3][coord][1] * kvec[axes] / kmag2;
+		      cdisp2[axes][coord][1] = -cdigrad[3][coord][0] * kvec[axes] / kmag2;
 		    }
-		  else cdisp2[axes][coord].re = cdisp2[axes][coord].im = 0.0;
+		  else cdisp2[axes][coord][0] = cdisp2[axes][coord][1] = 0.0;
 #ifdef CORRECT_CIC
-		  cdisp[axes][coord].re *= smth;   cdisp[axes][coord].im *= smth;
-		  cdisp2[axes][coord].re *= smth;  cdisp2[axes][coord].im *= smth;
+		  cdisp[axes][coord][0] *= smth;   cdisp[axes][coord][1] *= smth;
+		  cdisp2[axes][coord][0] *= smth;  cdisp2[axes][coord][1] *= smth;
 #endif
 		}
 	    }
@@ -756,7 +758,8 @@ void initialize_ffts(void)
 					 Nmesh, Nmesh, Nmesh, FFTW_REAL_TO_COMPLEX, FFTW_ESTIMATE);
 
   rfftwnd_mpi_local_sizes(Forward_plan, &Local_nx, &Local_x_start,
-			  &local_ny_after_transpose, &local_y_start_after_transpose, &total_size);
+			  &local_ny_after_transpose, &local_y_start_after_transpose, &total_size,
+			  Nmesh, Nmesh, Nmesh, MPI_COMM_WORLD);
 
   Local_nx_table = malloc(sizeof(int) * NTask);
   MPI_Allgather(&Local_nx, 1, MPI_INT, Local_nx_table, 1, MPI_INT, MPI_COMM_WORLD);

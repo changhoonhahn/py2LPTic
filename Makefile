@@ -28,138 +28,38 @@ OPT   +=  -DNO64BITID    # switch this on if you want normal 32-bit IDs
 
 OPTIONS =  $(OPT)
 
-#SYSTYPE="hpcf"
-#SYSTYPE="cosmos"
-#SYSTYPE="som"
-#SYSTYPE="odyssey"
-#SYSTYPE="Paco"
-#SYSTYPE="zefiro"
-SYSTYPE="flatiron"
-#SYSTYPE="GordonS"
+
+FFTW_INCL = -I/opt/homebrew/opt/fftw/include
+FFTW_LIBS = -L/opt/homebrew/opt/fftw/lib
+
+GSL_LIBS = -L/opt/homebrew/opt/gsl/lib
+GSL_INCL = -I/opt/homebrew/opt/gsl/include
 
 
-FFTW_INCL = -I/home/rs123/local/include
-FFTW_LIBS = -L/home/rs123/local/lib
+CC       =  gcc #/user/bin/gcc 
+#MPICHLIB = -L/usr/mpi/gcc/openmpi-1.2.2-1/lib64 -lmpi
+MPICHLIB = -L/opt/homebrew/Cellar/open-mpi/5.0.9/lib -lmpi 
+MPI_INCL = -I/opt/homebrew/Cellar/open-mpi/5.0.9/include
 
-GSL_LIBS=   -L/usr/local/gsl/1.9/lib/
-GSL_INCL =  -I/usr/local/gsl/1.9/include/
-
-
-CC       =  /usr/mpi/gcc/openmpi-1.2.2-1/bin/mpicc
-MPICHLIB = -L/usr/mpi/gcc/openmpi-1.2.2-1/lib64 -lmpi
-
-OPTIMIZE =   -O3 -Wall    # optimization and warning flags (default)
-
-
-ifeq ($(SYSTYPE),"flatiron")
-CC       =   mpicc     # sets the C-compiler   
-OPT      +=  -DMPICH_IGNORE_CXX_SEEK
-OPTIMIZE =   -std=gnu99 -O3 -g -Wall -Wno-unused-but-set-variable -Wno-uninitialized -Wno-unknown-pragmas -Wno-unused-function -march=broadwell
-GSL_INCL = -I$GSL_ROOT/include
-GSL_LIBS =
-FFTW_INCL= -I$FFTW_ROOT/include
-FFTW_LIBS=
-MPICHLIB =  -lmpi
-HDF5INCL =  -DH5_USE_16_API
-HDF5LIB  =  -lhdf5 -lz
-ifeq (NUM_THREADS,$(findstring NUM_THREADS,$(CONFIGVARS)))
-PTIMIZE +=  -fopenmp
-OPT      += -DIMPOSE_PINNING -DSOCKETS=4 -DMAX_CORES=16
-endif
-endif
-
-ifeq ($(SYSTYPE),"GordonS")
-CC = mpicc -g -O2 #-xW -ipo -Wall
-CXX = mpiCC -g -O2 -xW -ipo -Wall
-OPTIMIZE =
-GMP_INCL = -I/opt/gnu/gmp/include
-GMP_LIBS = -L/opt/gnu/gmp/lib
-GSL_INCL = -I/opt/gsl/2.1/intel/include
-GSL_LIBS = -L/opt/gsl/2.1/intel/lib
-FFTW_INCL= -I/opt/fftw/2.1.5/intel/mvapich2_ib/include
-FFTW_LIBS= -L/opt/fftw/2.1.5/intel/mvapich2_ib/lib
-HDF5INCL = -I/opt/hdf5/intel/mvapich2_ib/include
-HDF5LIB = -L/opt/hdf5/intel/mvapich2_ib/lib -lhdf5 -lz
-endif
-
-ifeq ($(SYSTYPE),"Paco")
-CC       =  gcc     # sets the C-compiler
-OPT      +=  
-OPTIMIZE =   -O3 -g
-GSL_INCL = -I/Users/fvillaescusa/Software/gsl-2.4_lib/include
-GSL_LIBS = -L/Users/fvillaescusa/Software/gsl-2.4_lib/lib
-FFTW_INCL= -I/Users/fvillaescusa/Software/fftw-2.1.5_lib/include
-FFTW_LIBS= -L/Users/fvillaescusa/Software/fftw-2.1.5_lib/lib
-MPICHLIB = -L/Users/fvillaescusa/Software/openmpi-3.0.0_lib/lib -lmpi
-MPI_INCL = -I/Users/fvillaescusa/Software/openmpi-3.0.0_lib/include
-endif
-
-ifeq ($(SYSTYPE),"zefiro")
-CC       =  mpicc     # sets the C-compiler
-OPT      +=  
-OPTIMIZE =  -O3 -g
-GSL_INCL = -I/home/users/villaes/Libraries/GSL/gsl-1.16_lib/include 
-GSL_LIBS = -L/home/users/villaes/Libraries/GSL/gsl-1.16_lib/lib
-FFTW_INCL= -I/home/users/villaes/Libraries/FFTW/fftw-2.1.5_lib/include
-FFTW_LIBS= -L/home/users/villaes/Libraries/FFTW/fftw-2.1.5_lib/lib
-MPICHLIB = -L/usr/lib64/openmpi/include -lmpi
-MPI_INCL = -I/usr/lib64/openmpi/lib
-endif
-
-ifeq ($(SYSTYPE),"odyssey")
-CC       =  mpicc     # sets the C-compiler
-OPT      +=  #-DNOCALLSOFSYSTEM  -DMPICH_IGNORE_CXX_SEEK
-OPTIMIZE =   -O3 -g #-m64 -vec_report0 -xhost
-GSL_INCL =
-GSL_LIBS =
-FFTW_INCL=
-FFTW_LIBS=
-MPICHLIB =
-HDF5INCL = #-DH5_USE_16_API
-HDF5LIB  = #-lhdf5
-endif
-
-ifeq ($(SYSTYPE),"cosmos")
-CC       =  icc
-OPTIMIZE =  
-GSL_INCL =
-GSL_LIBS =  
-FFTW_INCL= 
-FFTW_LIBS= 
-MPICHLIB = -lmpi
-endif
-
-ifeq ($(SYSTYPE),"som")
-CC       =  icc
-OPTIMIZE =  -g -O2
-MPI_INCL = -I/software/openmpi-1.6.2/intel/include
-GSL_INCL =
-GSL_LIBS =  
-FFTW_INCL= -I/software/fftw-2.1.5/intel/include
-FFTW_LIBS= -L/software/fftw-2.1.5/intel/lib
-MPICHLIB = -L/software/openmpi-1.6.2/intel/lib -lmpi
-endif
-
-
-ifeq ($(SYSTYPE),"hpcf")
-CC       =   mpicc  # sets the C-compiler
-#OPT     +=  -DFIX_PATHSCALE_MPI_STATUS_IGNORE_BUG 
-OPTIMIZE =  -O3 -xHOST -ip -ipo
-GSL_INCL = -I/usr/local/Cluster-Apps/gsl/1.9/include/
-GSL_LIBS = -L/usr/local/Cluster-Apps/gsl/1.9/lib/
-FFTW_INCL= -I/usr/local/Cluster-Apps.sandybridge/fftw/intel/2.1.5/double/include/
-FFTW_LIBS= -L/usr/local/Cluster-Apps.sandybridge/fftw/intel/2.1.5/double/lib/
-#GSL_INCL = -I/usr/local/Cluster-Users/mv249/GSL/include/
-#GSL_LIBS = -L/usr/local/Cluster-Users/mv249/GSL/lib/
-#FFTW_INCL= -I/usr/local/Cluster-Users/mv249/FFTW/include
-#FFTW_LIBS= -L/usr/local/Cluster-Users/mv249/FFTW/lib -Wl,--rpath -Wl,/usr/local/Cluster-Users/mv249/FFTW/lib/
-endif
+OPTIMIZE =   -O3 -g    # optimization and warning flags (default)
 
 
 
+#ifeq ($(SYSTYPE),"Paco")
+#CC       =  gcc     # sets the C-compiler
+#OPT      +=  
+#OPTIMIZE =   -O3 -g
+#GSL_INCL = -I/Users/fvillaescusa/Software/gsl-2.4_lib/include
+#GSL_LIBS = -L/Users/fvillaescusa/Software/gsl-2.4_lib/lib
+#FFTW_INCL= -I/Users/fvillaescusa/Software/fftw-2.1.5_lib/include
+#FFTW_LIBS= -L/Users/fvillaescusa/Software/fftw-2.1.5_lib/lib
+#MPICHLIB = -L/Users/fvillaescusa/Software/openmpi-3.0.0_lib/lib -lmpi
+#MPI_INCL = -I/Users/fvillaescusa/Software/openmpi-3.0.0_lib/include
+#endif
 
 
-FFTW_LIB =  $(FFTW_LIBS) -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw
+
+FFTW_LIB =  $(FFTW_LIBS) -lfftw3_mpi -lfftw3
 
 LIBS   =   -lm  $(MPICHLIB)  $(FFTW_LIB)  $(GSL_LIBS)  -lgsl -lgslcblas
 

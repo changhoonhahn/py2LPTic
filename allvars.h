@@ -1,4 +1,4 @@
-#include <drfftw_mpi.h>
+#include "fftw2compat.h"
 
 #define  PI          3.14159265358979323846 
 #define  GRAVITY     6.672e-8

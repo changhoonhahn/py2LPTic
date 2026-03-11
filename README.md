@@ -1,10 +1,14 @@
 # modified version of 2LPTic
 modified version of Roman's 2LPTic code, which can be found in
 https://cosmo.nyu.edu/roman/2LPT/, used specifically for running the Quijote
-simulations 
+simulations. 
+
+The repo includes the modifications for Quijote by Francisco Villaescusa-Navarro 
+and updates to be compatible with FFTW3 using `fftw2compat.h`
 
 ## Quijote modifications 
-These are modifications made specifically for Quijote: 
+These are modifications made specifically for Quijote. Below are details on the
+modification by Francisco Villaesucsa-Navarro. 
 
 ```
 This code can be used to generate the IC for N-body simulations using 2LPT.
